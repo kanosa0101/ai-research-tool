@@ -2,20 +2,18 @@
 
 **中文** | [English](#english)
 
-每日多源 AI 资讯聚合工具。自动抓取 GitHub Trending 热门项目与 arXiv 最新论文，生成结构化 Markdown 简报。零依赖，开箱即用。
-
----
+每日多源 AI 资讯聚合工具。自动抓取 GitHub Trending 热门项目与 arXiv 最新论文，支持个性化兴趣配置、AI 相关性评分和去重推送。零依赖，开箱即用。
 
 ## 功能
 
-- 🔥 **GitHub Trending**：抓取今日/本周/本月热门项目，含描述和 Star 增长
-- 📚 **arXiv 论文**：按关键词搜索最新论文，含摘要和作者
-- 📄 **Markdown 输出**：可打印到终端或保存为文件
-- ⚙️ **灵活配置**：支持关键词、时间范围、语言过滤、条目数量
+- 🔥 **GitHub Trending**：今日/本周/本月热门项目，含描述和 Star 增长
+- 📚 **arXiv 论文**：按分类（cs.AI / cs.LG / cs.CL 等）抓取最新论文
+- 🎯 **AI 相关性评分**：用 GPT 对每篇论文打分，按相关性过滤和排序（可选）
+- 🔁 **增量去重**：记录已推送内容，避免重复
+- ⚙️ **config.yaml**：个性化研究兴趣配置
+- 🤖 **GitHub Actions**：Fork 即用，每天 UTC 00:00 自动生成并提交报告
 
-## 安装
-
-无需安装，Python 3.8+ 直接运行：
+## 快速开始
 
 ```bash
 git clone https://github.com/kanosa0101/ai-research-tool.git
@@ -23,54 +21,68 @@ cd ai-research-tool
 python3 ai_research.py
 ```
 
+无需安装任何依赖（`pyyaml` 可选，用于读取 `config.yaml`）。
+
+## 配置
+
+编辑 `config.yaml` 自定义研究兴趣：
+
+```yaml
+arxiv:
+  categories: [cs.AI, cs.LG, cs.CL, cs.MA]
+  interests: |
+    LLM agents, self-improving AI, agentic workflows, MCP
+  min_score: 6      # AI 评分阈值（1-10）
+  max_fetch: 30
+
+github:
+  since: daily      # daily | weekly | monthly
+  language: ""      # 语言过滤，如 python
+  top: 10
+
+output:
+  top_papers: 10
+  top_repos: 10
+  ai_scoring: false # 设为 true 并配置 OPENAI_API_KEY 启用
+```
+
 ## 用法
 
 ```bash
-# 默认：今日热门 + LLM Agent 相关论文
+# 默认运行（使用 config.yaml）
 python3 ai_research.py
 
-# 自定义关键词和时间范围
+# 自定义关键词
 python3 ai_research.py --keywords "MCP agent tool-use" --since weekly
 
 # 保存为文件
-python3 ai_research.py --output report.md
+python3 ai_research.py --output reports/today.md
 
-# 只看 Python 项目，取 Top 10
-python3 ai_research.py --language python --top 10
+# 增量模式（跳过已推送内容）
+python3 ai_research.py --incremental --output reports/today.md
+
+# 启用 AI 评分
+OPENAI_API_KEY=sk-... python3 ai_research.py --score
 ```
 
-## 参数
+| 参数 | 说明 |
+|------|------|
+| `--config` | 配置文件路径（默认：config.yaml） |
+| `--keywords` | 覆盖 arXiv 搜索关键词 |
+| `--since` | GitHub Trending 时间范围：`daily / weekly / monthly` |
+| `--language` | GitHub Trending 语言过滤 |
+| `--top` | 每个来源显示的条目数 |
+| `--output` | 输出 Markdown 文件路径 |
+| `--incremental` | 增量模式，跳过已推送内容 |
+| `--score` | 启用 AI 相关性评分（需 `OPENAI_API_KEY`） |
 
-| 参数 | 默认值 | 说明 |
-|------|--------|------|
-| `--keywords` | `LLM agent agentic self-reflection` | arXiv 搜索关键词 |
-| `--since` | `daily` | GitHub Trending 时间范围：`daily / weekly / monthly` |
-| `--language` | *(不限)* | GitHub Trending 语言过滤（如 `python`） |
-| `--top` | `5` | 每个数据源显示的条目数 |
-| `--output` | *(终端)* | 输出 Markdown 文件路径 |
+## GitHub Actions 自动化
 
-## 示例输出
+Fork 本仓库后，每天 UTC 00:00 自动运行，报告保存至 `reports/` 目录。
 
-```markdown
-# 每日 AI 调研简报 — 2026-02-28
+可选：在仓库 Settings → Secrets 中添加 `OPENAI_API_KEY` 启用 AI 评分。
 
-## 🔥 GitHub 今日热门（Top 5）
-- **anthropics/claude-code** ⭐ +705 — Agentic coding tool...
-
-## 📚 arXiv 最新论文（Top 5）
-### SELAUR: Self Evolving LLM Agent via Uncertainty-aware Rewards
-*2026-02-25 · Dengjia Zhang et al.*
-...
-```
-
-## 定时运行
-
-配合 cron 每日自动生成简报：
-
-```bash
-# 每天 UTC 00:00 运行
-0 0 * * * python3 /path/to/ai_research.py --output /path/to/reports/daily_$(date +\%Y-\%m-\%d).md
-```
+也可手动触发：Actions → Daily AI Research Briefing → Run workflow。
 
 ---
 
@@ -78,18 +90,18 @@ python3 ai_research.py --language python --top 10
 
 ## English
 
-A lightweight, zero-dependency tool that aggregates AI news from multiple sources — GitHub Trending and arXiv papers — into a daily Markdown briefing.
+A lightweight, zero-dependency tool that aggregates AI news from GitHub Trending and arXiv papers into a daily Markdown briefing, with optional AI relevance scoring.
 
 ### Features
 
-- 🔥 **GitHub Trending**: Top repos with descriptions and star growth
-- 📚 **arXiv Papers**: Latest papers by keyword, with abstracts
-- 📄 **Markdown output**: Print to stdout or save to file
-- ⚙️ **Flexible**: Filter by keyword, time range, language, and result count
+- 🔥 **GitHub Trending** — Top repos with descriptions and star growth
+- 📚 **arXiv Papers** — Latest papers by category (cs.AI / cs.LG / cs.CL etc.)
+- 🎯 **AI Relevance Scoring** — GPT-powered scoring and filtering (optional)
+- 🔁 **Incremental dedup** — Tracks seen items, no repeats
+- ⚙️ **config.yaml** — Personalized research interest configuration
+- 🤖 **GitHub Actions** — Fork and forget; auto-runs daily at UTC 00:00
 
-### Install
-
-No dependencies required. Python 3.8+:
+### Quick Start
 
 ```bash
 git clone https://github.com/kanosa0101/ai-research-tool.git
@@ -97,38 +109,25 @@ cd ai-research-tool
 python3 ai_research.py
 ```
 
-### Usage
-
-```bash
-# Default: today's trending + LLM agent papers
-python3 ai_research.py
-
-# Custom keywords and time range
-python3 ai_research.py --keywords "MCP agent tool-use" --since weekly
-
-# Save to file
-python3 ai_research.py --output report.md
-
-# Python repos only, top 10
-python3 ai_research.py --language python --top 10
-```
+No dependencies required (`pyyaml` optional for config.yaml support).
 
 ### Options
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--keywords` | `LLM agent agentic self-reflection` | arXiv search query |
+| `--config` | `config.yaml` | Config file path |
+| `--keywords` | — | Override arXiv search keywords |
 | `--since` | `daily` | GitHub Trending window: `daily / weekly / monthly` |
-| `--language` | *(any)* | Filter by programming language (e.g. `python`) |
+| `--language` | *(any)* | Filter by programming language |
 | `--top` | `5` | Results per source |
 | `--output` | *(stdout)* | Save report to Markdown file |
+| `--incremental` | — | Skip already-seen items |
+| `--score` | — | Enable AI relevance scoring (requires `OPENAI_API_KEY`) |
 
-### Scheduled runs
+### GitHub Actions
 
-```bash
-# Daily at UTC 00:00
-0 0 * * * python3 /path/to/ai_research.py --output /path/to/reports/daily_$(date +\%Y-\%m-\%d).md
-```
+Fork the repo. Reports are automatically committed to `reports/` daily.
+Optionally add `OPENAI_API_KEY` as a repository secret to enable AI scoring.
 
 ## License
 

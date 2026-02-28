@@ -1,0 +1,42 @@
+name: Daily AI Research Briefing
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # UTC 00:00 daily
+  workflow_dispatch:       # manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PyYAML (optional, for config.yaml support)
+        run: pip install pyyaml --quiet
+
+      - name: Run AI Research Tool
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}  # optional
+        run: |
+          DATE=$(date -u +%Y-%m-%d)
+          mkdir -p reports
+          python3 ai_research.py \
+            --config config.yaml \
+            --incremental \
+            --output "reports/daily_${DATE}.md"
+
+      - name: Commit and push report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add reports/
+          git diff --cached --quiet || git commit -m "report: $(date -u +%Y-%m-%d) daily briefing"
+          git push

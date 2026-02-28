@@ -1,0 +1,43 @@
+# AI Research Tool Configuration
+
+arxiv:
+  # arXiv categories to monitor (see https://arxiv.org/category_taxonomy)
+  categories:
+    - cs.AI
+    - cs.LG
+    - cs.CL
+    - cs.MA  # Multi-Agent Systems
+
+  # Natural language description of your research interests
+  # Used for AI relevance scoring
+  interests: |
+    I am interested in:
+    - LLM agents and multi-agent systems
+    - Self-improving and self-reflecting AI
+    - Agentic workflows and tool use (MCP, function calling)
+    - AI safety and alignment
+    - Practical agent frameworks and orchestration
+
+  # Minimum relevance score to include in report (1-10)
+  min_score: 6
+
+  # Number of papers to fetch per run
+  max_fetch: 30
+
+github:
+  # Time range for trending repos
+  since: daily  # daily | weekly | monthly
+
+  # Programming language filter (leave empty for all)
+  language: ""
+
+  # Number of repos to show
+  top: 10
+
+output:
+  # Number of top items per section
+  top_papers: 10
+  top_repos: 10
+
+  # Enable AI scoring (requires OPENAI_API_KEY or compatible endpoint)
+  ai_scoring: false
